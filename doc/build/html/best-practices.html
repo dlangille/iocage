@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Best practices &mdash; iocage 1.4.2 documentation</title>
+    <title>Best practices &mdash; iocage 1.6.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.4.2',
+        VERSION:     '1.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="iocage 1.4.2 documentation" href="index.html" />
-    <link rel="next" title="Using UUIDs" href="using-uuids.html" />
-    <link rel="prev" title="Pre-flight checklist" href="pre-flight-checklist.html" /> 
+    <link rel="top" title="iocage 1.6.0 documentation" href="index.html" />
+    <link rel="next" title="Advanced usage" href="advanced-use.html" />
+    <link rel="prev" title="Jail types" href="jailtypes.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,12 +35,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="using-uuids.html" title="Using UUIDs"
+          <a href="advanced-use.html" title="Advanced usage"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="pre-flight-checklist.html" title="Pre-flight checklist"
+          <a href="jailtypes.html" title="Jail types"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">iocage 1.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">iocage 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,7 +54,7 @@
 <p>These are some generic guidelines for working with iocage managed jails.</p>
 <p><strong>Use PF as a module</strong></p>
 <blockquote>
-<div>This is the default setting in the <tt class="docutils literal"><span class="pre">GENERIC</span></tt> kernel. There seem to be bug which is only
+<div>This is the default setting in the <tt class="docutils literal"><span class="pre">GENERIC</span></tt> kernel. There seems to be a VNET bug which is only
 triggered when PF is directly compiled into the kernel.</div></blockquote>
 <p><strong>Always tag your jails and templates!</strong></p>
 <blockquote>
@@ -63,10 +63,11 @@ triggered when PF is directly compiled into the kernel.</div></blockquote>
 <blockquote>
 <div>Set the <tt class="docutils literal"><span class="pre">notes</span></tt> property to something meaningful, especially for templates
 and jails you might use only once in a while.</div></blockquote>
-<p><strong>Use VNET!</strong></p>
+<p><strong>VNET</strong></p>
 <blockquote>
-<div><tt class="docutils literal"><span class="pre">VNET</span></tt> will give you more control and isolation. Also allows to run per jail firewalls.</div></blockquote>
-<p><strong>Don&#8217;t mix RELEASES!</strong></p>
+<div><tt class="docutils literal"><span class="pre">VNET</span></tt> will give you more control and isolation. Also allows to run per jail firewalls.
+See known issues about VNET.</div></blockquote>
+<p><strong>Don&#8217;t mix RELEASEs!</strong></p>
 <blockquote>
 <div>As best practice only run jails with the same <tt class="docutils literal"><span class="pre">RELEASE</span></tt> as the host
 system.</div></blockquote>
@@ -92,14 +93,10 @@ everything. Also check PF firewall rules on the host if you happen to mix both.<
 <p><strong>Get rid of old snapshots</strong></p>
 <blockquote>
 <div>Remove snapshots you don&#8217;t need, especially from jails where data is changing a lot!</div></blockquote>
-<p><strong>Don&#8217;t change the hostname</strong></p>
-<blockquote>
-<div>Unless really needed, don&#8217;t change the jail&#8217;s UUID based hostname in
-<tt class="docutils literal"><span class="pre">/etc/rc.conf</span></tt>. Add required entries to <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> instead.</div></blockquote>
 <p><strong>Use the `chroot` sub-command</strong></p>
 <blockquote>
-<div>In case you need to access or modify files in a template or a jail which is in
-stopped state, use <tt class="docutils literal"><span class="pre">iocage</span> <span class="pre">chroot</span> <span class="pre">UUID</span></tt>. This way you don&#8217;t need to spin up the
+<div>In case you need to access or modify files in a template or a jail which is in a
+stopped state, use <tt class="docutils literal"><span class="pre">iocage</span> <span class="pre">chroot</span> <span class="pre">UUID</span> <span class="pre">|</span> <span class="pre">TAG</span></tt>. This way you don&#8217;t need to spin up the
 jail or convert the template.</div></blockquote>
 </div>
 
@@ -110,11 +107,11 @@ jail or convert the template.</div></blockquote>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="pre-flight-checklist.html"
-                        title="previous chapter">Pre-flight checklist</a></p>
+  <p class="topless"><a href="jailtypes.html"
+                        title="previous chapter">Jail types</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="using-uuids.html"
-                        title="next chapter">Using UUIDs</a></p>
+  <p class="topless"><a href="advanced-use.html"
+                        title="next chapter">Advanced usage</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/best-practices.txt"
@@ -144,17 +141,17 @@ jail or convert the template.</div></blockquote>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="using-uuids.html" title="Using UUIDs"
+          <a href="advanced-use.html" title="Advanced usage"
              >next</a> |</li>
         <li class="right" >
-          <a href="pre-flight-checklist.html" title="Pre-flight checklist"
+          <a href="jailtypes.html" title="Jail types"
              >previous</a> |</li>
-        <li><a href="index.html">iocage 1.4.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">iocage 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2014, Peter Toth.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>

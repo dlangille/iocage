@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>iocage - FreeBSD jail manager &mdash; iocage 1.4.2 documentation</title>
+    <title>iocage - A FreeBSD jail manager &mdash; iocage 1.6.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.4.2',
+        VERSION:     '1.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="iocage 1.4.2 documentation" href="#" />
-    <link rel="next" title="FAQ" href="faq.html" /> 
+    <link rel="top" title="iocage 1.6.0 documentation" href="#" />
+    <link rel="next" title="Basic usage" href="basic-use.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,9 +34,9 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="faq.html" title="FAQ"
+          <a href="basic-use.html" title="Basic usage"
              accesskey="N">next</a> |</li>
-        <li><a href="#">iocage 1.4.2 documentation</a> &raquo;</li> 
+        <li><a href="#">iocage 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,54 +45,80 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="iocage-freebsd-jail-manager">
-<h1>iocage - FreeBSD jail manager<a class="headerlink" href="#iocage-freebsd-jail-manager" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="iocage-a-freebsd-jail-manager">
+<h1>iocage - A FreeBSD jail manager<a class="headerlink" href="#iocage-a-freebsd-jail-manager" title="Permalink to this headline">¶</a></h1>
 <p>iocage is a zero dependency drop in jail/container manager amalgamating some
 of the best features and technologies FreeBSD operating system has to offer.
 It is geared for ease of use with a simple and easy to understand command
 syntax.</p>
 <p><strong>FEATURES:</strong></p>
 <ul class="simple">
-<li>rapid thin provisioning (within seconds!)</li>
-<li>templating</li>
-<li>automatic package installation</li>
-<li>ease of use (also supports shortened UUIDs)</li>
-<li>zero configuration files</li>
-<li>virtual networking stacks (vnet)</li>
-<li>shared IP based jails (non vnet)</li>
-<li>fully writable clones</li>
-<li>resource limits (CPU, MEMORY, etc.)</li>
-<li>filesystem quotas and reservations</li>
-<li>ZFS jailing inside jails</li>
-<li>transparent snapshot management</li>
-<li>binary updates</li>
-<li>differential jail packaging</li>
-<li>export and import</li>
-<li>and many more!</li>
+<li>Templates, clones, basejails, fully independent jails</li>
+<li>Ease of use</li>
+<li>Zero configuration files</li>
+<li>Rapid thin provisioning within seconds</li>
+<li>Automatic package installation</li>
+<li>Virtual networking stacks (vnet)</li>
+<li>Shared IP based jails (non vnet)</li>
+<li>Resource limits (CPU, MEMORY, etc.)</li>
+<li>Filesystem quotas and reservations</li>
+<li>Dedicated ZFS datasets inside jails</li>
+<li>Transparent ZFS snapshot management</li>
+<li>Binary updates</li>
+<li>Differential jail packaging</li>
+<li>Export and import</li>
+<li>And many more!</li>
 </ul>
 <div class="section" id="documentation">
 <h2>Documentation:<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pre-flight-checklist.html">Pre-flight checklist</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic-use.html">Basic usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#fetch-a-release">Fetch a release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#create-a-jail">Create a jail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#listing-jails">Listing jails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#start-stop-or-restart-a-jail">Start, stop or restart a jail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#configure-a-jail">Configure a jail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#system-wide-defaults">System wide defaults</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic-use.html#destroy-a-jails">Destroy a jails</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="networking.html">Networking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="networking.html#intro">Intro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="networking.html#shared-ip">Shared IP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="networking.html#vimage-vnet">VIMAGE/VNET</a></li>
+<li class="toctree-l2"><a class="reference internal" href="networking.html#configuring-network-interfaces">Configuring Network Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="jailtypes.html">Jail types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="jailtypes.html#full-thick">Full (thick)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jailtypes.html#clone-thin">Clone (thin)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jailtypes.html#base">Base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jailtypes.html#template">Template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jailtypes.html#empty">Empty</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="best-practices.html">Best practices</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using-uuids.html">Using UUIDs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="auto-boot.html">How to turn on auto boot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced-use.html">Advanced usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#clones">Clones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#updating-jails">Updating jails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#upgrading-jails">Upgrading jails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#auto-boot">Auto boot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#snapshot-management">Snapshot management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced-use.html#resource-limits">Resource limits</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">How to create and use templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="automatic-package-installation.html">Automatic package installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="configure-interfaces.html">Configuring Network Interfaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shared-ip.html">Non VNET jails (shared IP)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help-no-internet.html">Help! My jail has no Internet connectivity!</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jail-package.html">Create a jail package!</a></li>
-<li class="toctree-l1"><a class="reference internal" href="clones.html">Dealing with clones</a></li>
-<li class="toctree-l1"><a class="reference internal" href="destroy.html">Destroying jails</a></li>
-<li class="toctree-l1"><a class="reference internal" href="templates.html">How to use templates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="resource-limit.html">Resource limiting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="snapshots.html">Snapshot management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="thin-thick.html">Thin provision or thick provision?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="updating.html">Updating jails</a></li>
-<li class="toctree-l1"><a class="reference internal" href="real-world.html">Real world example with VNET, NAT, PF, IPFW and port forwarding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="debian.html">Create a Debian squeeze jail (gnu kFreeBSD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debian.html">Create a Debian Squeeze jail (GNU/kFreeBSD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="known-issues.html">Known Issues</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="known-issues.html#character-mount-path-limitation">88 character mount path limitation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="known-issues.html#property-validation">Property validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="known-issues.html#vnet-vimage-issues">VNET/VIMAGE issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 </ul>
 </div>
 <div class="section" id="indices-and-tables">
@@ -116,7 +142,7 @@ syntax.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">iocage - FreeBSD jail manager</a><ul>
+<li><a class="reference internal" href="#">iocage - A FreeBSD jail manager</a><ul>
 <li><a class="reference internal" href="#documentation">Documentation:</a><ul>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
@@ -126,8 +152,8 @@ syntax.</p>
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="faq.html"
-                        title="next chapter">FAQ</a></p>
+  <p class="topless"><a href="basic-use.html"
+                        title="next chapter">Basic usage</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -157,14 +183,14 @@ syntax.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="faq.html" title="FAQ"
+          <a href="basic-use.html" title="Basic usage"
              >next</a> |</li>
-        <li><a href="#">iocage 1.4.2 documentation</a> &raquo;</li> 
+        <li><a href="#">iocage 1.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2014, Peter Toth.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>

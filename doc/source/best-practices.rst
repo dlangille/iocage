@@ -5,7 +5,7 @@ These are some generic guidelines for working with iocage managed jails.
 
 **Use PF as a module**
 
-  This is the default setting in the ``GENERIC`` kernel. There seem to be bug which is only
+  This is the default setting in the ``GENERIC`` kernel. There seems to be a VNET bug which is only
   triggered when PF is directly compiled into the kernel.
 
 **Always tag your jails and templates!**
@@ -17,14 +17,10 @@ These are some generic guidelines for working with iocage managed jails.
   Set the ``notes`` property to something meaningful, especially for templates
   and jails you might use only once in a while.
 
-**Use VNET!**
+**VNET**
 
   ``VNET`` will give you more control and isolation. Also allows to run per jail firewalls.
-
-**Don't mix RELEASES!**
-
-  As best practice only run jails with the same ``RELEASE`` as the host
-  system.
+  See known issues about VNET.
 
 **Don't overuse resource limiting!**
 
@@ -36,7 +32,7 @@ These are some generic guidelines for working with iocage managed jails.
 
   Templates will make your life easy, try them!
 
-**Use the `restart` command instead of `start` `stop`**
+**Use the restart command instead of start/stop**
 
   If you wish to restart a jail use the ``restart`` command which performs a
   soft restart and it leaves the ``VNET`` stack alone, less stressful for the
@@ -53,15 +49,8 @@ These are some generic guidelines for working with iocage managed jails.
 
   Remove snapshots you don't need, especially from jails where data is changing a lot!
 
-**Don't change the hostname**
-
-  Unless really needed, don't change the jail's UUID based hostname in
-  ``/etc/rc.conf``. Add required entries to ``/etc/hosts`` instead.
-
-**Use the `chroot` sub-command**
+**Use the chroot sub-command**
  
-  In case you need to access or modify files in a template or a jail which is in
-  stopped state, use ``iocage chroot UUID``. This way you don't need to spin up the
+  In case you need to access or modify files in a template or a jail which is in a
+  stopped state, use ``iocage chroot UUID | TAG``. This way you don't need to spin up the
   jail or convert the template.
-
-  

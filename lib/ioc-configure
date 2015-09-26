@@ -1,0 +1,239 @@
+#!/bin/sh
+
+# Configure properties -------------------------------------------------
+__configure_jail () {
+    local _value _default_value _CONF
+
+    _CONF="$CONF_NET
+           $CONF_JAIL
+           $CONF_RCTL
+           $CONF_CUSTOM
+           $CONF_SYNC
+           $CONF_GIT"
+
+    #echo "Configuring jail.."
+    for prop in $_CONF ; do
+        prop_name=$prop
+        eval prop="\$${prop}"
+        if [ ! -z "$prop" ] ; then
+            # find saved default value if any for the property
+            _default_value="$(__get_default_prop $prop_name)"
+
+            if [ "$prop_name" = "tag" ] ; then
+                _value="$tag"
+            elif [ "$prop_name" = "host_hostname" ] ; then
+                _value="$uuid"
+            elif [ "$prop_name" = "hostname" ] ; then
+                _value="$uuid"
+            elif [ "$prop_name" = "host_hostuuid" ] ; then
+                _value="$uuid"
+            elif [ "$prop_name" = "jail_zfs_dataset" ] ; then
+                _value="${jail_zfs_dataset}"
+            elif [ "$prop_name" = "release" ] ; then
+                _value="${release}"
+            elif [ "$prop_name" = "hack88" ] ; then
+                _value="${hack88}"
+            elif [ "$prop_name" = "resolver" ] ; then
+                _value="${resolver}"
+            elif [ "$prop_name" = "ip4_autostart" ] ; then
+                _value="${ip4_autostart}"
+            elif [ "$prop_name" = "ip4_autoend" ] ; then
+                _value="${ip4_autoend}"
+            elif [ "$prop_name" = "ip4_autosubnet" ] ; then
+                _value="${ip4_autosubnet}"
+            elif [ "$prop_name" = "type" ] ; then
+                _value="${type}"
+            elif [ "$prop_name" = "gitlocation" ] ; then
+                case "$gitlocation" in
+                    "-")
+                        gitlocation="https://github.com"
+                    ;;
+                esac
+                _value="${gitlocation}"
+            elif [ "$prop_name" = "vnet0_mac" ] ; then
+                case "$vnet0_mac" in
+                    "-")
+                        vnet0_mac="none"
+                    ;;
+                esac
+                _value="$vnet0_mac"
+            elif [ "$prop_name" = "vnet1_mac" ] ; then
+                case "$vnet1_mac" in
+                    "-")
+                        vnet1_mac="none"
+                    ;;
+                esac
+                _value="$vnet1_mac"
+            elif [ "$prop_name" = "vnet2_mac" ] ; then
+                case "$vnet2_mac" in
+                    "-")
+                        vnet2_mac="none"
+                    ;;
+                esac
+                _value="$vnet2_mac"
+            elif [ "$prop_name" = "vnet3_mac" ] ; then
+                case "$vnet3_mac" in
+                    "-")
+                        vnet3_mac="none"
+                    ;;
+                esac
+                _value="$vnet3_mac"
+            elif [ "$_default_value" != "none" ] && [ "$_default_value" != "$prop" ] ; then
+                _value="$_default_value"
+            else
+                _value="$prop"
+            fi
+
+            if [ "$1" != "generate" ] ; then
+                echo "** $prop_name=$_value"
+                zfs set org.freebsd.iocage:$prop_name="$_value" $1
+                unset _value
+                if [ "$prop_name" == "tag" ] ; then
+                    __link_tag $1
+                fi
+            elif [ "$1" == "generate" ] ; then
+                echo -n "-o org.freebsd.iocage:$prop_name=\"$_value\" "
+            fi
+        fi
+    done
+
+    for prop in $CONF_ZFS ; do
+        prop_name=$prop
+        eval prop="\$${prop}"
+        _default_value="$(__get_default_prop $prop_name)"
+        if [ ! -z "$prop" ] && [ "$prop" != "readonly" ] ; then
+            # find saved default value if any for the property
+            if [ "$_default_value" != "none" ] && [ "$_default_value" != "$prop" ] ; then
+                _value="$_default_value"
+            else
+                _value="$prop"
+            fi
+
+            if [ "$1" != "generate" ] ; then
+                echo "** $prop_name=$_value"
+                zfs set $prop_name="$_value" $1
+            elif [ "$1" == "generate" ] ; then
+                echo -n "-o $prop_name=\"$_value\" "
+            fi
+        fi
+    done
+}
+
+__jail_rc_conf () {
+cat << EOT
+
+cron_flags="$cron_flags -J 15"
+
+# Disable Sendmail by default
+sendmail_enable="NONE"
+sendmail_submit_enable="NO"
+sendmail_outbound_enable="NO"
+sendmail_msp_queue_enable="NO"
+
+# Run secure syslog
+syslogd_flags="-c -ss"
+
+# Enable IPv6
+ipv6_activate_all_interfaces="YES"
+EOT
+}
+
+# This is mostly for pkg autoinstall
+# expects fulluuid to be passed in as $1
+__resolv_conf () {
+    local _name _resolver _resolver_default _fulluuid
+    _fulluuid="$1"
+    _default_resolver="$(__get_default_prop resolver)"
+    _resolver="$(__get_jail_prop resolver $_fulluuid)"
+
+    if [ "${_resolver}" != "none" ] ; then
+        echo "${_resolver}" | tr \; \\n
+    elif [ "${_resolver}" == "none" ] && [ "${_default_resolver}" != "none" ] ; then
+        echo "${_default_resolver}" | tr \; \\n
+    else
+        cat /etc/resolv.conf
+    fi
+}
+
+__pkg_install () {
+    local _chrootdir="$1"
+
+    if [ -e $pkglist ] ; then
+        echo "* Installing extra packages.."
+        for i in $(cat $pkglist) ; do
+            pkg -c $_chrootdir install -qy $i
+        done
+    fi
+}
+
+__reset_jail_props () {
+    local _name _dataset uuid tag
+    _name=$1
+
+    if [ -z "$_name" ] ; then
+        echo "  ERROR: Missing UUID!"
+        exit 1
+    fi
+
+    _dataset="$(__find_jail $_name)"
+
+    if [ -z "$_dataset" ] ; then
+        echo "  ERROR: $_name not found."
+        exit 1
+    fi
+
+    if [ "$_dataset" == "multiple" ] ; then
+        echo "  ERROR: Multiple matching UUIDs!"
+        exit 1
+    fi
+
+    if [ $_name == "ALL" ] ; then
+        echo " "
+        echo "  WARNING: This will reset ALL jails!"
+        echo " "
+        echo -n "  Are you sure? y[N]: "
+        read answer
+        if [ "$answer" == "Y" ] || [ "$answer" == "y" ] ; then
+            echo "  Resetting all jails."
+
+            __reset_jail_props_all
+
+            exit 0
+        else
+            echo "  Command not confirmed.  No action taken."
+            exit 1
+        fi
+    fi
+
+    # Cache properties to set again later
+    uuid="$(zfs get -H -o value org.freebsd.iocage:host_hostuuid $_dataset)"
+    tag="$(zfs get -H -o value org.freebsd.iocage:tag $_dataset)"
+    vnet0_mac="$(zfs get -H -o value org.freebsd.iocage:vnet0_mac $_dataset)"
+    vnet1_mac="$(zfs get -H -o value org.freebsd.iocage:vnet1_mac $_dataset)"
+    vnet2_mac="$(zfs get -H -o value org.freebsd.iocage:vnet2_mac $_dataset)"
+    vnet3_mac="$(zfs get -H -o value org.freebsd.iocage:vnet3_mac $_dataset)"
+    release="$(zfs get -H -o value org.freebsd.iocage:release $_dataset)"
+    hack88="$(zfs get -H -o value org.freebsd.iocage:hack88 $_dataset)"
+    jail_zfs_dataset="$(zfs get -H -o value org.freebsd.iocage:jail_zfs_dataset\
+     $_dataset)"
+    resolver="$(zfs get -H -o value org.freebsd.iocage:resolver $_dataset)"
+    ip4_autostart="$(zfs get -H -o value org.freebsd.iocage:ip4_autostart\
+     $_dataset)"
+    ip4_autoend="$(zfs get -H -o value org.freebsd.iocage:ip4_autoend\
+     $_dataset)"
+    ip4_autosubnet="$(zfs get -H -o value org.freebsd.iocage:ip4_autosubnet\
+     $_dataset)"
+    gitlocation="$(zfs get -H -o value org.freebsd.iocage:gitlocation $_dataset)"
+    type="$(zfs get -H -o value org.freebsd.iocage:type $_dataset)"
+    __configure_jail $_dataset
+}
+
+__reset_jail_props_all () {
+    local _jails _dataset
+    _jails="$(__find_jail ALL)"
+
+    for jail in $_jails ; do
+       _dataset="$(zfs get -H -o value org.freebsd.iocage:host_hostuuid $jail)"
+       __reset_jail_props "$_dataset"
+    done
+}

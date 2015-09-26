@@ -1,0 +1,186 @@
+#!/bin/sh
+
+__update () {
+  local _name _dataset _fulluuid _mountpoint _date _jail_type
+
+  _name=$2
+
+    # Start looking for any command switches, if nothing special is found
+    # then proceed with the normal update procedure
+    case "$1" in
+        -n)
+            _dataset=$(__find_jail $_name)
+            _fulluuid="$(__check_name $_name)"
+            _mountpoint="$(__get_jail_prop mountpoint $_fulluuid)"
+            _jail_type="$(__get_jail_prop type $_fulluuid)"
+
+            # If a git jail is found, update the remote and show the user the
+            # status output
+            case $_jail_type in
+                gitjail)
+                    git -C $_mountpoint/root remote update
+                    git -C $_mountpoint/root status -uno
+                ;;
+            esac
+        ;;
+        *)
+            shift 3
+            _name=$1
+            _dataset=$(__find_jail $_name)
+            _fulluuid="$(__check_name $_name)"
+            _mountpoint="$(__get_jail_prop mountpoint $_fulluuid)"
+            _date=$(date "+%F_%T")
+            _jail_type="$(__get_jail_prop type $_fulluuid)"
+            _jail_release="$(__get_jail_prop release $_fulluuid)"
+
+            # Check all jail types and do the right thing
+            case $_jail_type in
+                basejail)
+                    # Re-clone required filesystems
+                    __reclone_basejail $_name
+                ;;
+                gitjail)
+                    # Update the local git repo to the latest remote
+                    git -C $_mountpoint/root pull
+                ;;
+                jail)
+                    echo "* Creating back-out snapshot."
+                    __snapshot ${_fulluuid}@ioc-update_${_date}
+
+                    # Override the release that freebsd-update uses and
+                    # set the pager to cat so that it isn't interactive
+                    echo "* Updating jail.."
+
+                    if [ $release != $_jail_release ] ; then
+                        release="$_jail_release"
+                    fi
+
+                    if [ -e $iocroot/releases/$release/root/etc/freebsd-update.conf ] ; then
+                        env UNAME_r="$release" env PAGER="/bin/cat" \
+                            /usr/sbin/freebsd-update \
+                            -b ${_mountpoint}/root \
+                            -f $iocroot/releases/$release/root/etc/freebsd-update.conf \
+                            -d ${_mountpoint}/root/var/db/freebsd-update/ fetch
+                        env UNAME_r="$release" env PAGER="/bin/cat" \
+                            /usr/sbin/freebsd-update \
+                            -b ${_mountpoint}/root \
+                            -f $iocroot/releases/$release/root/etc/freebsd-update.conf \
+                            -d ${_mountpoint}/root/var/db/freebsd-update/ install
+                    fi
+
+                    echo ""
+                    echo "* Once finished don't forget to remove the snapshot!"
+                ;;
+            esac
+
+            if [ -z $_name ] ; then
+                echo "  ERROR: Missing UUID!"
+                exit 1
+            fi
+
+            if [ -z $_dataset ] ; then
+                echo "  ERROR: $_name not found."
+                exit 1
+            fi
+
+            if [ $_dataset == "multiple" ] ; then
+                echo "  ERROR: Multiple matching UUIDs!"
+                exit 1
+            fi
+        ;;
+      esac
+}
+
+__upgrade () {
+    local _name _dataset _fulluuid _jail_type _jail_release _mountpoint _date \
+          _oldrelease
+
+    _name=$1
+    _dataset=$(__find_jail $_name)
+    _fulluuid="$(__check_name $_name)"
+    _jail_type="$(__get_jail_prop type $_fulluuid)"
+    _mountpoint="$(__get_jail_prop mountpoint $_fulluuid)"
+    _date=$(date "+%F_%T")
+    _oldrelease="$(zfs get -H -o value org.freebsd.iocage:release $_dataset)"
+
+    if [ -z $_name ] ; then
+        echo "  ERROR: Missing UUID!"
+        exit 1
+    fi
+
+    if [ -z $_dataset ] ; then
+        echo "  ERROR: $_name not found."
+        exit 1
+    fi
+
+    if [ $_dataset == "multiple" ] ; then
+        echo "  ERROR: Multiple matching UUIDs!"
+        exit 1
+    fi
+
+    if [ ! -d $iocroot/download/$release ] ; then
+        echo "  ERROR: $release not found."
+        echo "  Please run iocage fetch first."
+        exit 1
+    fi
+
+    # If jail is a basejail then set the new release and reclone the datasets
+    # also backup jail's /etc just incase etcupdate doesn't go as planned
+    if [ $_jail_type == "basejail" ] ; then
+        zfs set org.freebsd.iocage:release="$release" $_dataset
+        # Re-clone required filesystems
+        __reclone_basejail $_name
+        cp -Rp ${_mountpoint}/root/etc ${_mountpoint}/root/etc.old
+        etcupdate -D ${_mountpoint}/root -F \
+        -s $iocroot/base/$release/root/usr/src
+        __chroot "$_name" newaliases
+
+        # Check for zero exit code(success) otherwise bail and revert everything
+        if [ $? -eq 0 ] ; then
+            echo ""
+            echo "* Upgrade successful. Please restart jail and inspect. Remove ${_mountpoint}/root/etc.old if everything is OK."
+            exit 0
+        else
+            echo ""
+            echo "* etcupdate failed! Backing out."
+            zfs set org.freebsd.iocage:release="$_oldrelease" $_dataset
+            rm -rf ${_mountpoint}/root/etc
+            mv ${_mountpoint}/root/etc.old ${_mountpoint}/root/etc
+            exit 1
+        fi
+    fi
+
+    echo "* Creating back-out snapshot."
+    __snapshot ${_fulluuid}@ioc-upgrade_${_date}
+
+    echo "* Upgrading jail."
+
+    # Override the release that freebsd-update uses and
+    # set the pager to cat so that it isn't interactive
+    env UNAME_r=${_oldrelease} env PAGER="/bin/cat" \
+        /usr/sbin/freebsd-update \
+        -b ${_mountpoint}/root \
+        -d ${_mountpoint}/root/var/db/freebsd-update/ \
+        -r $release upgrade
+
+    # Same as above except it waits to see a non-zero exit code signalling that
+    # there isn't anything else left to do
+    if [ $? -eq 0 ] ; then
+        while [ $? -eq 0 ] ; do
+            env UNAME_r=${_oldrelease} env PAGER="/bin/cat" \
+            /usr/sbin/freebsd-update \
+            -b ${_mountpoint}/root \
+            -d ${_mountpoint}/root/var/db/freebsd-update/ \
+            -r $release install
+    done
+
+    # Set jail's zfs property to new release
+    zfs set org.freebsd.iocage:release="$release" $_dataset
+    else
+       echo "* Upgrade failed, aborting install."
+       exit 1
+    fi
+
+    echo ""
+    echo "* Once finished don't forget to remove the snapshot!"
+}
